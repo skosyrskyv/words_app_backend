@@ -1,0 +1,14 @@
+env: "dev"
+
+http_server: 
+  address: "auth.api.wordsapp.skosyrsky.com"
+  port: ""
+
+database:
+  host: "localhost"
+  port: 5432
+  name: "auth_db"
+  user: "postgres"
+  password: "9if-6p0vNpzV"
+  sslmode: "disable"
+  timezone: Asia/Shanghai
