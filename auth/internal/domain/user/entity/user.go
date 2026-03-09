@@ -6,15 +6,17 @@ import (
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type User struct {
 	UUID         uuid.UUID
 	Email        vo.Email
 	PasswordHash vo.PasswordHash
-	isActive     bool
+	IsActive     bool
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
+	DeletedAt    gorm.DeletedAt
 }
 
 func NewUser(plainEmail string, plainPassword string) (*User, error) {
@@ -42,7 +44,7 @@ func NewUser(plainEmail string, plainPassword string) (*User, error) {
 		UUID:         uuid.New(),
 		Email:        email,
 		PasswordHash: passwordHash,
-		isActive:     true,
+		IsActive:     true,
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}, nil

@@ -20,7 +20,6 @@ func NewGetUserByUUIDUseCase(postgres repository.Postgres, logger *slog.Logger) 
 }
 
 func (uc *GetUserByUUIDUseCase) Execute(uuid string) (*dto.UserOutput, error) {
-	const op = "application.usecase.GetUserByUUIDUseCase.Execute"
 	user, err := uc.postgres.GetByUUID(uuid)
 
 	if err != nil {
@@ -28,8 +27,13 @@ func (uc *GetUserByUUIDUseCase) Execute(uuid string) (*dto.UserOutput, error) {
 			uc.logger.Warn("User not found", slog.String("uuid", uuid))
 			return nil, err
 		}
-		uc.logger.Error("Failed to get user", slog.String("op", op))
+		uc.logger.Error("Failed to get user")
 		return nil, err
+	}
+
+	if user.DeletedAt.Valid {
+		uc.logger.Warn("User is deleted", slog.String("uuid", uuid), slog.Time("deleted_at", user.DeletedAt.Time))
+		return nil, entity.UserNotFoundError
 	}
 
 	return &dto.UserOutput{

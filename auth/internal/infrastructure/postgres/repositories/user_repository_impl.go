@@ -90,7 +90,9 @@ func modelToEntity(model *models.User) (*entity.User, error) {
 		UUID:         uid,
 		Email:        email,
 		PasswordHash: passwordHash,
+		IsActive:     model.IsActive,
 		CreatedAt:    model.CreatedAt,
 		UpdatedAt:    model.UpdatedAt,
+		DeletedAt:    model.DeletedAt,
 	}, nil
 }

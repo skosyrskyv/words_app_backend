@@ -23,7 +23,6 @@ func NewCreateUserUseCase(
 }
 
 func (uc *CreateUserUseCase) Execute(input dto.CrateUserInput) (*dto.UserOutput, error) {
-	const op = "application.usecase.CreateUserUseCase.Execute"
 
 	foundUser, err := uc.postgres.GetByEmail(input.Email)
 
@@ -35,14 +34,14 @@ func (uc *CreateUserUseCase) Execute(input dto.CrateUserInput) (*dto.UserOutput,
 	user, err := entity.NewUser(input.Email, input.Password)
 
 	if err != nil {
-		uc.logger.Error("Failed to create user", slog.String("op", op))
+		uc.logger.Error("Failed to create user")
 		return nil, err
 	}
 
 	createdUser, err := uc.postgres.Create(user)
 
 	if err != nil {
-		uc.logger.Error("Failed to save user to DB", slog.String("op", op))
+		uc.logger.Error("Failed to save user to DB")
 		return nil, err
 	}
 
