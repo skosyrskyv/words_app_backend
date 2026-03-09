@@ -34,7 +34,7 @@ endef
 
 # PATHS
 BINARY_NAME=server.exe
-MAIN_PATH=.
+MAIN_PATH=./cmd/api/
 TMP_DIR=./tmp
 
 .PHONY: build run clean

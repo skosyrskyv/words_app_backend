@@ -4,14 +4,13 @@ import (
 	"auth/config"
 	"auth/internal/application/usecase"
 	"auth/internal/infrastructure/postgres/repositories"
-	httpv1 "auth/pkg/http"
+	"auth/pkg/httpserver"
 	"auth/pkg/logger"
 	"auth/pkg/postgres"
 	"auth/pkg/router"
 	"context"
 	"log/slog"
 	"os"
-	"time"
 )
 
 func main() {
@@ -20,28 +19,28 @@ func main() {
 
 	logger := logger.Init(cfg.Env)
 
-	db := postgres.Init(cfg.PostgresConfig)
+	AppRun(context.Background(), cfg, logger)
+}
 
-	logger.Debug("debug messages are enabled")
-	logger.Info("Starting server...", slog.String("env", cfg.Env))
+func AppRun(ctx context.Context, cfg config.Config, logger *slog.Logger) {
+
+	// Initialize postgres
+	postgres := postgres.Init(cfg.PostgresConfig)
 
 	// Initialize repositories
-	userRepository := repositories.NewUserRepository(db)
+	userRepository := repositories.NewUserRepository(postgres.DB())
 
 	// Initialize usecases
 	usecases := usecase.NewUserUseCases(userRepository, logger)
 
 	// Setup router
-	router := router.Init(usecases, logger)
+	ginRouter := router.Init(usecases, logger)
 
 	// Start server
-	httpServer := httpv1.Init(cfg.HTTPServerConfig, router.Handler())
+	httpServer := httpserver.Init(cfg.HTTPServerConfig, ginRouter, logger)
 
 	<-make(chan os.Signal, 1)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	httpServer.Shutdown(ctx)
-
+	postgres.Close()
+	httpServer.Close()
 }

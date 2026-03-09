@@ -11,4 +11,4 @@ postgres:
   user: "postgres"
   password: "9if-6p0vNpzV"
   sslmode: "disable"
-  timezone: Asia/Shanghai
+  timezone: Asia/Shanghaiц
