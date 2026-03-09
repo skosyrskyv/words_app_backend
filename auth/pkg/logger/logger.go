@@ -1,24 +1,22 @@
 package logger
 
 import (
-	envtypes "auth/internal/const/envType"
+	"auth/config"
 	"log/slog"
 	"os"
 )
 
-func Setup(env string) {
+func Init(env string) *slog.Logger {
 	var handler slog.Handler
-	var logger *slog.Logger
 
 	switch env {
-	case envtypes.LOCAL:
+	case config.LOCAL:
 		handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug, AddSource: true})
-	case envtypes.DEV:
+	case config.DEV:
 		handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})
-	case envtypes.PROD:
+	case config.PROD:
 		handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})
 	}
 
-	logger = slog.New(handler)
-	slog.SetDefault(logger)
+	return slog.New(handler)
 }

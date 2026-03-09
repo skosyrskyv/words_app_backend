@@ -2,32 +2,32 @@ package usecase
 
 import (
 	"auth/internal/application/dto"
-	"auth/internal/domain/entity"
-	"auth/internal/domain/ports/repository"
+	"auth/internal/domain/user/entity"
+	"auth/internal/domain/user/repository"
 	"log/slog"
 )
 
 type CreateUserUseCase struct {
-	userRepository repository.UserRepository
-	logger         *slog.Logger
+	postgres repository.Postgres
+	logger   *slog.Logger
 }
 
 func NewCreateUserUseCase(
-	userRepository repository.UserRepository,
+	postgres repository.Postgres,
 	logger *slog.Logger,
 ) *CreateUserUseCase {
 	return &CreateUserUseCase{
-		userRepository: userRepository,
-		logger:         logger,
+		postgres: postgres,
+		logger:   logger,
 	}
 }
 
 func (uc *CreateUserUseCase) Execute(input dto.CrateUserInput) (*dto.UserOutput, error) {
 	const op = "application.usecase.CreateUserUseCase.Execute"
 
-	foundUser, err := uc.userRepository.GetByEmail(input.Email)
+	foundUser, err := uc.postgres.GetByEmail(input.Email)
 
-	if err != nil && foundUser != nil {
+	if err == nil && foundUser != nil {
 		uc.logger.Warn("User already exist", slog.String("email", input.Email))
 		return nil, entity.EmailAlreadyExistsError
 	}
@@ -39,7 +39,7 @@ func (uc *CreateUserUseCase) Execute(input dto.CrateUserInput) (*dto.UserOutput,
 		return nil, err
 	}
 
-	userUUID, err := uc.userRepository.Create(user)
+	createdUser, err := uc.postgres.Create(user)
 
 	if err != nil {
 		uc.logger.Error("Failed to save user to DB", slog.String("op", op))
@@ -47,7 +47,9 @@ func (uc *CreateUserUseCase) Execute(input dto.CrateUserInput) (*dto.UserOutput,
 	}
 
 	return &dto.UserOutput{
-		UUID:  userUUID,
-		Email: input.Email,
+		UUID:      createdUser.UUID.String(),
+		Email:     createdUser.Email.String(),
+		CreatedAt: createdUser.CreatedAt,
+		UpdatedAt: createdUser.UpdatedAt,
 	}, nil
 }

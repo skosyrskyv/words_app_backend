@@ -2,26 +2,26 @@ package usecase
 
 import (
 	"auth/internal/application/dto"
-	"auth/internal/domain/entity"
-	"auth/internal/domain/ports/repository"
+	"auth/internal/domain/user/entity"
+	"auth/internal/domain/user/repository"
 	"log/slog"
 )
 
 type GetUserByUUIDUseCase struct {
-	repository repository.UserRepository
-	logger     *slog.Logger
+	postgres repository.Postgres
+	logger   *slog.Logger
 }
 
-func NewGetUserByUUIDUseCase(repository repository.UserRepository, logger *slog.Logger) *GetUserByUUIDUseCase {
+func NewGetUserByUUIDUseCase(postgres repository.Postgres, logger *slog.Logger) *GetUserByUUIDUseCase {
 	return &GetUserByUUIDUseCase{
-		repository: repository,
-		logger:     logger,
+		postgres: postgres,
+		logger:   logger,
 	}
 }
 
 func (uc *GetUserByUUIDUseCase) Execute(uuid string) (*dto.UserOutput, error) {
 	const op = "application.usecase.GetUserByUUIDUseCase.Execute"
-	user, err := uc.repository.GetByUUID(uuid)
+	user, err := uc.postgres.GetByUUID(uuid)
 
 	if err != nil {
 		if err == entity.UserNotFoundError {
@@ -33,7 +33,9 @@ func (uc *GetUserByUUIDUseCase) Execute(uuid string) (*dto.UserOutput, error) {
 	}
 
 	return &dto.UserOutput{
-		UUID:  user.UUID.String(),
-		Email: user.Email.String(),
+		UUID:      user.UUID.String(),
+		Email:     user.Email.String(),
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}, nil
 }

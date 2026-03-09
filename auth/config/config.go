@@ -9,10 +9,16 @@ import (
 	"github.com/joho/godotenv"
 )
 
+const (
+	LOCAL = "local"
+	PROD  = "prod"
+	DEV   = "dev"
+)
+
 type Config struct {
-	Env                string `yaml:"env" env: "ENV" env-default:"local" env-required:"true"`
-	HTTPServerConfig   `yaml:"http_server"`
-	AuthDBServerConfig `yaml:"database"`
+	Env              string `yaml:"env" env: "ENV" env-default:"local" env-required:"true"`
+	HTTPServerConfig `yaml:"http_server"`
+	PostgresConfig   `yaml:"postgres"`
 }
 
 type HTTPServerConfig struct {
@@ -20,7 +26,7 @@ type HTTPServerConfig struct {
 	Port    string `yaml:"port"`
 }
 
-type AuthDBServerConfig struct {
+type PostgresConfig struct {
 	Host     string `yaml:"host" env-default:"localhost"`
 	Port     string `yaml:"port" env-default:"5432"`
 	Name     string `yaml:"name"`
@@ -30,7 +36,7 @@ type AuthDBServerConfig struct {
 	Timezone string `yaml:"timezone"`
 }
 
-func MustLoad() Config {
+func Init() Config {
 
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Error loading .env file: %s", err)
@@ -55,7 +61,7 @@ func MustLoad() Config {
 	return cfg
 }
 
-func (c AuthDBServerConfig) GetDSN() string {
+func (c PostgresConfig) GetDSN() string {
 	return fmt.Sprintf(
 		"host=%s port=%s user=%s dbname=%s password=%s sslmode=%s TimeZone=%s",
 		c.Host,

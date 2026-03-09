@@ -2,32 +2,46 @@ package main
 
 import (
 	"auth/config"
-	"auth/internal/infrastructure/adapters/logger"
-	"auth/internal/infrastructure/persistance/postgres"
+	"auth/internal/application/usecase"
+	"auth/internal/infrastructure/postgres/repositories"
+	httpv1 "auth/pkg/http"
+	"auth/pkg/logger"
+	"auth/pkg/postgres"
+	"auth/pkg/router"
+	"context"
 	"log/slog"
-
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
+	"os"
+	"time"
 )
 
 func main() {
-	var cfg config.Config
-	var db *gorm.DB
 
-	cfg = config.MustLoad()
-	logger.Setup(cfg.Env)
+	cfg := config.Init()
 
-	db = postgres.MustOpenConnection(cfg.AuthDBServerConfig)
-	_ = db
+	logger := logger.Init(cfg.Env)
 
-	slog.Debug("debug messages are enabled")
-	slog.Info("Starting server...", slog.String("env", cfg.Env))
+	db := postgres.Init(cfg.PostgresConfig)
 
-	router := gin.Default()
-	router.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
-	router.Run()
+	logger.Debug("debug messages are enabled")
+	logger.Info("Starting server...", slog.String("env", cfg.Env))
+
+	// Initialize repositories
+	userRepository := repositories.NewUserRepository(db)
+
+	// Initialize usecases
+	usecases := usecase.NewUserUseCases(userRepository, logger)
+
+	// Setup router
+	router := router.Init(usecases, logger)
+
+	// Start server
+	httpServer := httpv1.Init(cfg.HTTPServerConfig, router.Handler())
+
+	<-make(chan os.Signal, 1)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	httpServer.Shutdown(ctx)
+
 }

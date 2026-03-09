@@ -30,6 +30,10 @@ func NewEmail(plainEmail string) (Email, error) {
 	return Email{value: plainEmail}, nil
 }
 
-func (email *Email) String() string {
+func NewEmailFromString(plainEmail string) (Email, error) {
+	return NewEmail(plainEmail)
+}
+
+func (email Email) String() string {
 	return email.value
 }

@@ -24,6 +24,13 @@ func NewPasswordHash(password Password) (PasswordHash, error) {
 	return PasswordHash{value: string(hashBytes)}, nil
 }
 
-func (hash *PasswordHash) String() string {
+func NewPasswordHashFromString(hash string) (PasswordHash, error) {
+	if hash == "" {
+		return PasswordHash{}, EmptyPasswordError
+	}
+	return PasswordHash{value: hash}, nil
+}
+
+func (hash PasswordHash) String() string {
 	return hash.value
 }

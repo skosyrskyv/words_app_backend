@@ -4,7 +4,7 @@ http_server:
   address: "localhost"
   port: "8080"
 
-database:
+postgres:
   host: "localhost"
   port: 5432
   name: "auth_db"
