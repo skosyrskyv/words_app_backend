@@ -70,7 +70,6 @@ func (r *UserRepository) Delete(uuid string) error {
 	return r.db.Delete(&models.User{}, "uuid = ?", uuid).Error
 }
 
-// Helper function to convert model to entity
 func modelToEntity(model *models.User) (*entity.User, error) {
 	uid, err := uuid.Parse(model.Uuid)
 	if err != nil {

@@ -22,6 +22,7 @@ func Init(usecases *usecase.UserUseCases, logger *slog.Logger) *gin.Engine {
 	userGroup := router.Group("/api/v1/users")
 	{
 		userGroup.GET("/:uuid", userHandler.GetUserByUUID)
+		userGroup.POST("/registration", userHandler.CreateUser)
 	}
 
 	return router

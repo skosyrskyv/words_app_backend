@@ -2,11 +2,12 @@ package postgres
 
 import (
 	"auth/config"
+	"auth/internal/infrastructure/postgres/models"
 	"fmt"
 	"log"
 	"log/slog"
 
-	"gorm.io/driver/postgres"
+	driver "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -15,13 +16,19 @@ type Postgres struct {
 }
 
 func Init(cfg config.PostgresConfig) *Postgres {
-	postgres, err := gorm.Open(postgres.Open(cfg.GetDSN()), &gorm.Config{})
+	postgres, err := gorm.Open(driver.Open(cfg.GetDSN()), &gorm.Config{})
 
 	if err != nil {
 		log.Fatal("DataBase Connection failed...")
 	}
 
-	fmt.Printf("Database connected")
+	fmt.Println("Database connected")
+
+	if err := postgres.AutoMigrate(&models.User{}); err != nil {
+		log.Fatal("Failed to run migrations:", err)
+	}
+
+	fmt.Println("Migrations completed")
 
 	return &Postgres{
 		db: postgres,
@@ -32,6 +39,7 @@ func (p *Postgres) Close() {
 	sqlDB, err := p.db.DB()
 	if err != nil {
 		slog.Error("Error getting sqlDB")
+		return
 	}
 
 	err = sqlDB.Close()

@@ -24,12 +24,10 @@ func NewUserHandler(usecases *usecase.UserUseCases, logger *slog.Logger) *UserHa
 }
 
 func (h *UserHandler) CreateUser(c *gin.Context) {
-	const op = "presentation.http.handlers.UserHandler.CreateUser"
-
-	var req httpdto.CreateUserRequest
+	req := httpdto.CreateUserRequest{}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		h.logger.Warn("Invalid request", slog.String("op", op), slog.String("error", err.Error()))
+		h.logger.Warn("Invalid request", slog.String("error", err.Error()))
 		c.JSON(http.StatusBadRequest, httpdto.ErrorResponse{
 			Error:   "INVALID_REQUEST",
 			Message: err.Error(),
@@ -45,7 +43,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	userOutput, err := h.usecases.CreateUser.Execute(input)
 
 	if err != nil {
-		h.logger.Error("Failed to create user", slog.String("op", op), slog.String("error", err.Error()))
+		h.logger.Error("Failed to create user", slog.String("error", err.Error()))
 
 		if err == entity.EmailAlreadyExistsError {
 			c.JSON(http.StatusConflict, httpdto.ErrorResponse{
@@ -73,12 +71,10 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 }
 
 func (h *UserHandler) GetUserByUUID(c *gin.Context) {
-	const op = "presentation.http.handlers.UserHandler.GetUserByUUID"
-
 	uuid := c.Param("uuid")
 
 	if uuid == "" {
-		h.logger.Warn("UUID not provided", slog.String("op", op))
+		h.logger.Warn("UUID not provided")
 		c.JSON(http.StatusBadRequest, httpdto.ErrorResponse{
 			Error:   "INVALID_REQUEST",
 			Message: "UUID is required",
@@ -89,7 +85,7 @@ func (h *UserHandler) GetUserByUUID(c *gin.Context) {
 	userOutput, err := h.usecases.GetUserByUUID.Execute(uuid)
 
 	if err != nil {
-		h.logger.Warn("Failed to get user", slog.String("op", op), slog.String("uuid", uuid), slog.String("error", err.Error()))
+		h.logger.Warn("Failed to get user", slog.String("uuid", uuid), slog.String("error", err.Error()))
 
 		if err == entity.UserNotFoundError {
 			c.JSON(http.StatusNotFound, httpdto.ErrorResponse{

@@ -12,6 +12,7 @@ type User struct {
 	UUID         uuid.UUID
 	Email        vo.Email
 	PasswordHash vo.PasswordHash
+	isActive     bool
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
@@ -41,6 +42,7 @@ func NewUser(plainEmail string, plainPassword string) (*User, error) {
 		UUID:         uuid.New(),
 		Email:        email,
 		PasswordHash: passwordHash,
+		isActive:     true,
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}, nil

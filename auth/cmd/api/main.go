@@ -14,9 +14,7 @@ import (
 )
 
 func main() {
-
 	cfg := config.Init()
-
 	logger := logger.Init(cfg.Env)
 
 	AppRun(context.Background(), cfg, logger)
