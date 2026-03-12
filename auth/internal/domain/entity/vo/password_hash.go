@@ -31,6 +31,6 @@ func NewPasswordHashFromString(hash string) (PasswordHash, error) {
 	return PasswordHash{value: hash}, nil
 }
 
-func (hash PasswordHash) String() string {
+func (hash *PasswordHash) String() string {
 	return hash.value
 }

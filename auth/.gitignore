@@ -18,3 +18,8 @@ vendor/
 
 # configs
 /configs/*
+
+# keys
+*.key
+*.key.pub
+*.pem

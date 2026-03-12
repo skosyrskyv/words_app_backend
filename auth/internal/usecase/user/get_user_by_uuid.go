@@ -1,26 +1,26 @@
-package usecase
+package user
 
 import (
-	"auth/internal/application/dto"
-	"auth/internal/domain/user/entity"
-	"auth/internal/domain/user/repository"
+	"auth/internal/domain/entity"
+	"auth/internal/domain/interfaces"
+	"auth/internal/usecase/user/dto"
 	"log/slog"
 )
 
 type GetUserByUUIDUseCase struct {
-	postgres repository.Postgres
-	logger   *slog.Logger
+	repo   interfaces.UserRepository
+	logger *slog.Logger
 }
 
-func NewGetUserByUUIDUseCase(postgres repository.Postgres, logger *slog.Logger) *GetUserByUUIDUseCase {
+func NewGetUserByUUIDUseCase(repo interfaces.UserRepository, logger *slog.Logger) *GetUserByUUIDUseCase {
 	return &GetUserByUUIDUseCase{
-		postgres: postgres,
-		logger:   logger,
+		repo:   repo,
+		logger: logger,
 	}
 }
 
 func (uc *GetUserByUUIDUseCase) Execute(uuid string) (*dto.UserOutput, error) {
-	user, err := uc.postgres.GetByUUID(uuid)
+	user, err := uc.repo.GetUserByUUID(uuid)
 
 	if err != nil {
 		if err == entity.UserNotFoundError {

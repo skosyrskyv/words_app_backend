@@ -18,3 +18,8 @@ type SuccessResponse struct {
 	Data    interface{} `json:"data"`
 	Message string      `json:"message"`
 }
+
+type AuthSuccessResponse struct {
+	Access  string `json:"access"`
+	Refresh string `json:"refresh"`
+}

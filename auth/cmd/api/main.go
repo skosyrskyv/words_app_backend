@@ -2,12 +2,17 @@ package main
 
 import (
 	"auth/config"
-	"auth/internal/application/usecase"
-	"auth/internal/infrastructure/postgres/repositories"
+	"auth/internal/infrastructure/auth"
+	"auth/internal/infrastructure/user"
+	router "auth/internal/presentation/http"
+	"auth/internal/usecase"
+	"os/signal"
+	"syscall"
+
 	"auth/pkg/httpserver"
 	"auth/pkg/logger"
 	"auth/pkg/postgres"
-	"auth/pkg/router"
+	"auth/pkg/redis"
 	"context"
 	"log/slog"
 	"os"
@@ -21,24 +26,33 @@ func main() {
 }
 
 func AppRun(ctx context.Context, cfg config.Config, logger *slog.Logger) {
+	// Redis
+	redis := redis.Init(ctx, cfg.RedisConfig)
 
 	// Initialize postgres
 	postgres := postgres.Init(cfg.PostgresConfig)
 
 	// Initialize repositories
-	userRepository := repositories.NewUserRepository(postgres.DB())
+	userRepository := user.NewRepository(postgres.DB())
+	authRepository := auth.NewRepository(cfg.JWTConfig, redis)
 
-	// Initialize usecases
-	usecases := usecase.NewUserUseCases(userRepository, logger)
+	// Initialize UseCases
+	userUC := usecase.NewUserUseCases(userRepository, logger)
+	authUC := usecase.NewAuthUseCases(authRepository, userRepository, logger)
+	useCases := usecase.NewUseCases(userUC, authUC)
 
 	// Setup router
-	ginRouter := router.Init(usecases, logger)
+	ginRouter := router.NewRouter(useCases, logger)
 
 	// Start server
 	httpServer := httpserver.Init(cfg.HTTPServerConfig, ginRouter, logger)
 
-	<-make(chan os.Signal, 1)
+	// Graceful Shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+	<-quit
 
+	httpServer.Shutdown()
 	postgres.Close()
-	httpServer.Close()
+	redis.Close()
 }

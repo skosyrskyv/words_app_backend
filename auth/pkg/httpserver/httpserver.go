@@ -21,7 +21,6 @@ func Init(cfg config.HTTPServerConfig, router http.Handler, logger *slog.Logger)
 	}
 
 	addr := fmt.Sprintf("%s:%s", cfg.Address, cfg.Port)
-	logger.Info("Server started", slog.String("address", addr))
 
 	go func() {
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -29,13 +28,16 @@ func Init(cfg config.HTTPServerConfig, router http.Handler, logger *slog.Logger)
 		}
 	}()
 
+	slog.Info("Server started", slog.String("Address", addr))
+
 	return &Server{
 		httpServer: httpServer,
 	}
 }
 
-func (server *Server) Close() {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (server *Server) Shutdown() {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	server.httpServer.Shutdown(ctx)
+	slog.Info("Server shuted down")
 }

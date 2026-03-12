@@ -1,7 +1,7 @@
 package entity
 
 import (
-	"auth/internal/domain/user/entity/vo"
+	"auth/internal/domain/entity/vo"
 	"time"
 
 	"github.com/google/uuid"

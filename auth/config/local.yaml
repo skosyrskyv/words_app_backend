@@ -6,9 +6,27 @@ http_server:
 
 postgres:
   host: "localhost"
-  port: 5432
-  name: "auth_db"
+  port: 5433
+  name: "postgres"
   user: "postgres"
-  password: "9if-6p0vNpzV"
+  password: "9if6p0vNpzV"
   sslmode: "disable"
   timezone: Asia/Shanghai
+
+jwt:
+  private_key_path: "private.pem"
+  public_key_path: "public.pem"
+  issuer: "auth"
+  access_ttl: "15m"
+  refresh_ttl: "90d"
+
+redis:
+  host: "localhost"
+  port: "6379"
+  password: ""
+  db: 0
+  username: ""
+  max_retries: 5
+  dial_timeout: 10
+  read_timeout: 5
+  write_timeout: 5

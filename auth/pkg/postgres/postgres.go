@@ -2,8 +2,7 @@ package postgres
 
 import (
 	"auth/config"
-	"auth/internal/infrastructure/postgres/models"
-	"fmt"
+	"auth/internal/infrastructure/user/model"
 	"log"
 	"log/slog"
 
@@ -22,13 +21,13 @@ func Init(cfg config.PostgresConfig) *Postgres {
 		log.Fatal("DataBase Connection failed...")
 	}
 
-	fmt.Println("Database connected")
+	slog.Info("Postgres connected")
 
-	if err := postgres.AutoMigrate(&models.User{}); err != nil {
+	if err := postgres.AutoMigrate(&model.UserModel{}); err != nil {
 		log.Fatal("Failed to run migrations:", err)
 	}
 
-	fmt.Println("Migrations completed")
+	slog.Info("Postgres Migrations completed")
 
 	return &Postgres{
 		db: postgres,
