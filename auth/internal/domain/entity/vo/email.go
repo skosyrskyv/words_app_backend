@@ -6,10 +6,12 @@ import (
 )
 
 var (
-	InvalidEmailError    = errors.New("invalid_email_error")
-	MainEmailLengthError = errors.New("min_email_length_error")
-	MaxEmailLengthError  = errors.New("max_email_length_error")
+	InvalidEmailError   = errors.New("invalid_email_error")
+	MinEmailLengthError = errors.New("min_email_length_error")
+	MaxEmailLengthError = errors.New("max_email_length_error")
 )
+
+var emailRegex = regexp.MustCompile(`^[^@]+@[^@]+\.[^@]+$`)
 
 type Email struct {
 	value string
@@ -17,14 +19,14 @@ type Email struct {
 
 func NewEmail(plainEmail string) (Email, error) {
 	if len(plainEmail) < MinEmailLength {
-		return Email{}, MainEmailLengthError
+		return Email{}, MinEmailLengthError
 
 	}
 	if len(plainEmail) > MaxEmailLength {
 		return Email{}, MaxEmailLengthError
 
 	}
-	if !regexp.MustCompile(`^[^@]+@[^@]+\.[^@]+$`).MatchString(plainEmail) {
+	if !emailRegex.MatchString(plainEmail) {
 		return Email{}, InvalidEmailError
 	}
 	return Email{value: plainEmail}, nil

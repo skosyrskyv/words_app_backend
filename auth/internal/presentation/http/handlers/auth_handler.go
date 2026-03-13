@@ -12,6 +12,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+//   SEC-003 — Medium
+
+//   Локация: auth/internal/presentation/http/handlers/auth_handler.go:50
+//   Категория: Безопасность
+
+//   Описание: При внутренней ошибке логина клиенту возвращается err.Error() — может утечь информация о стеке, БД, файловых
+//    путях.
+
+//   Рекомендация: Возвращать generic-сообщение, ошибку логировать на сервере.
+
+//   ---
+
 type handler struct {
 	useCases *usecase.AuthUseCases
 	logger   *slog.Logger

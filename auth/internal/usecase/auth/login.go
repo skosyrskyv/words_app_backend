@@ -31,7 +31,8 @@ func (uc *LoginUseCase) Execute(input dto.AuthInput) (*dto.AuthOutput, error) {
 	}
 
 	// Check passwords
-	if res, err := user.VerifyPassword(input.Password); err != nil && !res {
+	res, err := user.VerifyPassword(input.Password)
+	if err != nil || !res {
 		return nil, entity.ErrUserCredentials
 	}
 

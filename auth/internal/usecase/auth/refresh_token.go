@@ -3,9 +3,8 @@ package auth
 import (
 	"auth/internal/domain/interfaces"
 	"auth/internal/usecase/auth/dto"
+	"errors"
 	"log/slog"
-
-	"github.com/golang-jwt/jwt/v5"
 )
 
 type RefreshTokenUseCase struct {
@@ -23,11 +22,5 @@ func NewRefreshTokenUsecase(authRepo interfaces.AuthRepository, userRepo interfa
 }
 
 func (uc *RefreshTokenUseCase) Execute(input dto.RefreshTokenInput) (*dto.AuthOutput, error) {
-	access := jwt.New(jwt.SigningMethodES256)
-	refresh := jwt.New(jwt.SigningMethodES256)
-
-	return &dto.AuthOutput{
-		Access:  access.Raw,
-		Refresh: refresh.Raw,
-	}, nil
+	return nil, errors.ErrUnsupported
 }

@@ -22,13 +22,13 @@ func NewCreateUserUseCase(
 	}
 }
 
-func (uc *CreateUserUseCase) Execute(input dto.CrateUserInput) (*dto.UserOutput, error) {
+func (uc *CreateUserUseCase) Execute(input dto.CreateUserInput) (*dto.UserOutput, error) {
 
 	foundUser, err := uc.repo.GetUserByEmail(input.Email)
 
 	if err == nil && foundUser != nil {
 		uc.logger.Warn("User already exist", slog.String("email", input.Email))
-		return nil, entity.EmailAlreadyExistsError
+		return nil, entity.ErrEmailAlreadyExists
 	}
 
 	user, err := entity.NewUser(input.Email, input.Password)

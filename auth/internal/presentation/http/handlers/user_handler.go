@@ -34,7 +34,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	input := dto.CrateUserInput{
+	input := dto.CreateUserInput{
 		Email:    req.Email,
 		Password: req.Password,
 	}
@@ -42,7 +42,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	userOutput, err := h.useCases.CreateUser.Execute(input)
 
 	if err != nil {
-		if err == entity.EmailAlreadyExistsError {
+		if err == entity.ErrEmailAlreadyExists {
 			c.JSON(http.StatusConflict, httpDto.ErrorResponse{
 				Error:   "EMAIL_ALREADY_EXISTS",
 				Message: "User with this email already exists",
@@ -82,7 +82,7 @@ func (h *UserHandler) GetUserByUUID(c *gin.Context) {
 	userOutput, err := h.useCases.GetUserByUUID.Execute(uuid)
 
 	if err != nil {
-		if err == entity.UserNotFoundError {
+		if err == entity.ErrUserNotFound {
 			c.JSON(http.StatusNotFound, httpDto.ErrorResponse{
 				Error:   "USER_NOT_FOUND",
 				Message: "User with this UUID not found",

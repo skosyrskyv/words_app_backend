@@ -34,7 +34,7 @@ func (r *repository) GetUserByUUID(uuid string) (*entity.User, error) {
 
 	if err := r.db.Where("uuid = ?", uuid).First(&model).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, entity.UserNotFoundError
+			return nil, entity.ErrUserNotFound
 		}
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (r *repository) GetUserByEmail(email string) (*entity.User, error) {
 
 	if err := r.db.Where("email = ?", email).First(&model).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, nil
+			return nil, entity.ErrUserCredentials
 		}
 		return nil, err
 	}

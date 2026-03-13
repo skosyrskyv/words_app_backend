@@ -3,8 +3,8 @@ package vo
 import "errors"
 
 var (
-	PasswordTooShortError  = errors.New("password_too_short_error")
-	PasswordTooLengthError = errors.New("password_too_short_error")
+	PasswordTooShortError = errors.New("password_too_short_error")
+	PasswordTooLongError  = errors.New("password_too_long_error")
 )
 
 type Password struct {
@@ -17,7 +17,7 @@ func NewPassword(plainPassword string) (Password, error) {
 	}
 
 	if len(plainPassword) > MaxPasswordLength {
-		return Password{}, PasswordTooLengthError
+		return Password{}, PasswordTooLongError
 	}
 
 	return Password{value: plainPassword}, nil

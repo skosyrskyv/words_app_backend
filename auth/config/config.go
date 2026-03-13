@@ -98,7 +98,7 @@ func (c PostgresConfig) GetDSN() string {
 	)
 }
 
-func (c *JWTConfig) GetAccessTLL() (time.Duration, error) {
+func (c *JWTConfig) GetAccessTTL() (time.Duration, error) {
 	duration, err := c.parseDuration(c.AccessTTL)
 	if err != nil {
 		return 15 * time.Minute, err
@@ -106,7 +106,7 @@ func (c *JWTConfig) GetAccessTLL() (time.Duration, error) {
 	return duration, nil
 }
 
-func (c *JWTConfig) GetRefreshTLL() (time.Duration, error) {
+func (c *JWTConfig) GetRefreshTTL() (time.Duration, error) {
 	duration, err := c.parseDuration(c.RefreshTTL)
 	if err != nil {
 		return 30 * 24 * time.Hour, err
@@ -117,7 +117,10 @@ func (c *JWTConfig) GetRefreshTLL() (time.Duration, error) {
 func (c *JWTConfig) parseDuration(s string) (time.Duration, error) {
 	if len(s) > 1 && s[len(s)-1] == 'd' {
 		days := 0
-		fmt.Sscanf(s, "%dd", &days)
+		n, err := fmt.Sscanf(s, "%dd", &days)
+		if err != nil || n != 1 || days <= 0 {
+			return 0, fmt.Errorf("invalid duration: %s", s)
+		}
 		return time.Duration(days) * 24 * time.Hour, nil
 	}
 	return time.ParseDuration(s)

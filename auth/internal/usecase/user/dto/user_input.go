@@ -1,6 +1,6 @@
 package dto
 
-type CrateUserInput struct {
+type CreateUserInput struct {
 	Email    string
 	Password string
 }

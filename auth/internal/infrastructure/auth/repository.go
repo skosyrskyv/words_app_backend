@@ -5,17 +5,23 @@ import (
 	"auth/internal/domain/entity"
 	"auth/pkg/redis"
 	"context"
-	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
+
+//  SEC-001 — Medium
+
+//   Локация: auth/internal/infrastructure/auth/repository.go:72,105
+//   Категория: E — Чтение ключа с диска на каждый запрос
+
+//   Описание: Приватный RSA-ключ читается из файла при каждой генерации токена. Это и I/O-overhead, и потенциальная
+//   уязвимость (race condition при замене файла).
+
+//   Рекомендация: Загружать ключ один раз при инициализации repository, хранить в поле структуры.
 
 type repository struct {
 	cfg config.JWTConfig
@@ -35,7 +41,7 @@ func (r *repository) GenerateAccessToken(user *entity.User) (*entity.JWToken, er
 		return nil, err
 	}
 
-	ttl, err := r.cfg.GetAccessTLL()
+	ttl, err := r.cfg.GetAccessTTL()
 
 	if err != nil {
 		// Log error
@@ -64,7 +70,7 @@ func (r *repository) GenerateAccessToken(user *entity.User) (*entity.JWToken, er
 		return nil, err
 	}
 
-	tokenString, err := token.SignedString(key)
+	tokenSigned, err := token.SignedString(key)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +79,7 @@ func (r *repository) GenerateAccessToken(user *entity.User) (*entity.JWToken, er
 		TokenID:   tokenId,
 		IssuedAt:  iat,
 		ExpiresAt: exp,
-		Token:     tokenString,
+		Token:     tokenSigned,
 	}, nil
 }
 
@@ -83,7 +89,7 @@ func (r *repository) GenerateRefreshToken() (*entity.JWToken, error) {
 		return nil, err
 	}
 
-	ttl, err := r.cfg.GetRefreshTLL()
+	ttl, err := r.cfg.GetRefreshTTL()
 
 	if err != nil {
 		// Log error
@@ -102,15 +108,15 @@ func (r *repository) GenerateRefreshToken() (*entity.JWToken, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 	privateKeyBytes, err := os.ReadFile(r.cfg.PrivateKeyPath)
 	if err != nil {
-		log.Fatal("Ошибка чтения приватного ключа:", err)
+		return nil, err
 	}
 
 	key, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBytes)
 	if err != nil {
-		log.Fatal("Ошибка парсинга приватного ключа:", err)
+		return nil, err
 	}
 
-	tokenString, err := token.SignedString(key)
+	tokenSigned, err := token.SignedString(key)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +125,7 @@ func (r *repository) GenerateRefreshToken() (*entity.JWToken, error) {
 		TokenID:   tokenId,
 		IssuedAt:  iat,
 		ExpiresAt: exp,
-		Token:     tokenString,
+		Token:     tokenSigned,
 	}, nil
 }
 
@@ -140,37 +146,4 @@ func generateTokenId() (string, error) {
 		return "", err
 	}
 	return uuid.String(), nil
-}
-
-func parsePrivateKey(keyBytes []byte) (*rsa.PrivateKey, error) {
-	// Декодируем PEM
-	block, _ := pem.Decode(keyBytes)
-	if block == nil {
-		return nil, fmt.Errorf("не удалось декодировать PEM блок")
-	}
-
-	fmt.Printf("Тип PEM блока: %s\n", block.Type)
-
-	// Пробуем разные форматы парсинга
-	var key interface{}
-	var err error
-
-	// Пробуем PKCS1
-	key, err = x509.ParsePKCS1PrivateKey(block.Bytes)
-	if err == nil {
-		fmt.Println("Ключ в формате PKCS1")
-		return key.(*rsa.PrivateKey), nil
-	}
-
-	// Пробуем PKCS8
-	key, err = x509.ParsePKCS8PrivateKey(block.Bytes)
-	if err == nil {
-		fmt.Println("Ключ в формате PKCS8")
-		if rsaKey, ok := key.(*rsa.PrivateKey); ok {
-			return rsaKey, nil
-		}
-		return nil, fmt.Errorf("ключ не RSA")
-	}
-
-	return nil, fmt.Errorf("неподдерживаемый формат ключа")
 }
