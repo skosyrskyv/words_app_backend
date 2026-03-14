@@ -3,9 +3,12 @@ package auth
 import (
 	"auth/config"
 	"auth/internal/domain/entity"
+	"auth/internal/infrastructure/auth/model"
+	"auth/pkg/postgres"
 	"auth/pkg/redis"
-	"context"
+	"crypto/rsa"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -13,38 +16,51 @@ import (
 	"github.com/google/uuid"
 )
 
-//  SEC-001 — Medium
-
-//   Локация: auth/internal/infrastructure/auth/repository.go:72,105
-//   Категория: E — Чтение ключа с диска на каждый запрос
-
-//   Описание: Приватный RSA-ключ читается из файла при каждой генерации токена. Это и I/O-overhead, и потенциальная
-//   уязвимость (race condition при замене файла).
-
-//   Рекомендация: Загружать ключ один раз при инициализации repository, хранить в поле структуры.
-
 type repository struct {
-	cfg config.JWTConfig
-	db  *redis.Redis
+	cfg        config.JWTConfig
+	redis      *redis.Redis
+	postgres   *postgres.Postgres
+	privateKey *rsa.PrivateKey
 }
 
-func NewRepository(cfg config.JWTConfig, db *redis.Redis) *repository {
+func NewRepository(cfg config.JWTConfig, redis *redis.Redis, postgres *postgres.Postgres) *repository {
+	privateKeysBytes, err := os.ReadFile(cfg.PrivateKeyPath)
+	if err != nil {
+		log.Fatalf("Failed to read private key, error: %s", err.Error())
+	}
+
+	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeysBytes)
+	if err != nil {
+		log.Fatalf("Failed to parse private key, error: %s", err.Error())
+	}
+
 	return &repository{
-		cfg: cfg,
-		db:  db,
+		cfg:        cfg,
+		redis:      redis,
+		postgres:   postgres,
+		privateKey: privateKey,
 	}
 }
 
-func (r *repository) GenerateAccessToken(user *entity.User) (*entity.JWToken, error) {
+func (r *repository) GenerateToken(tokenType entity.TokenType, user *entity.User) (*entity.JWToken, error) {
 	tokenId, err := generateTokenId()
 	if err != nil {
 		return nil, err
 	}
 
-	ttl, err := r.cfg.GetAccessTTL()
+	var ttl time.Duration
+
+	switch tokenType {
+	case entity.AccessTokenType:
+		ttl, err = r.cfg.GetAccessTTL()
+	case entity.RefreshTokenType:
+		ttl, err = r.cfg.GetRefreshTTL()
+	default:
+		return nil, fmt.Errorf("invalid token type: %s", tokenType)
+	}
 
 	if err != nil {
-		// Log error
+		return nil, err
 	}
 
 	iat := time.Now()
@@ -52,7 +68,7 @@ func (r *repository) GenerateAccessToken(user *entity.User) (*entity.JWToken, er
 
 	claims := jwt.MapClaims{
 		"jti": tokenId,
-		"sub": user.UUID,
+		"sub": user.UUID.String(),
 		"iss": r.cfg.Issuer,
 		"iat": iat.Unix(),
 		"exp": exp.Unix(),
@@ -60,84 +76,34 @@ func (r *repository) GenerateAccessToken(user *entity.User) (*entity.JWToken, er
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 
-	privateKeyBytes, err := os.ReadFile(r.cfg.PrivateKeyPath)
+	tokenSigned, err := token.SignedString(r.privateKey)
 	if err != nil {
 		return nil, err
 	}
 
-	key, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	tokenSigned, err := token.SignedString(key)
-	if err != nil {
-		return nil, err
-	}
-
-	return &entity.JWToken{
+	model := &model.JWToken{
 		TokenID:   tokenId,
 		IssuedAt:  iat,
+		UserUUID:  user.UUID.String(),
 		ExpiresAt: exp,
 		Token:     tokenSigned,
-	}, nil
+		Type:      string(tokenType),
+	}
+
+	return model.ToEntity()
 }
 
-func (r *repository) GenerateRefreshToken() (*entity.JWToken, error) {
-	tokenId, err := generateTokenId()
-	if err != nil {
-		return nil, err
-	}
+func (r *repository) SaveToken(tkn *entity.JWToken) error {
+	var model model.JWToken
+	model.FromEntity(*tkn)
 
-	ttl, err := r.cfg.GetRefreshTTL()
+	r.postgres.DB().Save(&model)
 
-	if err != nil {
-		// Log error
-	}
-
-	iat := time.Now()
-	exp := time.Now().Add(ttl)
-
-	claims := jwt.MapClaims{
-		"jti": tokenId,
-		"iss": r.cfg.Issuer,
-		"iat": iat.Unix(),
-		"exp": exp.Unix(),
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	privateKeyBytes, err := os.ReadFile(r.cfg.PrivateKeyPath)
-	if err != nil {
-		return nil, err
-	}
-
-	key, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	tokenSigned, err := token.SignedString(key)
-	if err != nil {
-		return nil, err
-	}
-
-	return &entity.JWToken{
-		TokenID:   tokenId,
-		IssuedAt:  iat,
-		ExpiresAt: exp,
-		Token:     tokenSigned,
-	}, nil
-}
-
-func (r *repository) SaveRefreshToken(tkn *entity.JWToken) error {
-	if err := r.db.Set(context.Background(), tkn.TokenID, tkn.Token, 0); err != nil {
-		fmt.Printf("failed to set data, error: %s", err.Error())
-	}
 	return nil
 }
 
-func (r *repository) GetToken(id string) (string, error) {
-	return "", nil
+func (r *repository) GetToken(id string) (*entity.JWToken, error) {
+	return nil, nil
 }
 
 func generateTokenId() (string, error) {

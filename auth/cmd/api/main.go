@@ -34,7 +34,7 @@ func AppRun(ctx context.Context, cfg config.Config, logger *slog.Logger) {
 
 	// Initialize repositories
 	userRepository := user.NewRepository(postgres.DB())
-	authRepository := auth.NewRepository(cfg.JWTConfig, redis)
+	authRepository := auth.NewRepository(cfg.JWTConfig, redis, postgres)
 
 	// Initialize UseCases
 	userUC := usecase.NewUserUseCases(userRepository, logger)

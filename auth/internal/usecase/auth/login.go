@@ -37,20 +37,20 @@ func (uc *LoginUseCase) Execute(input dto.AuthInput) (*dto.AuthOutput, error) {
 	}
 
 	// Generate tokens
-	access, err := uc.authRepo.GenerateAccessToken(user)
+	access, err := uc.authRepo.GenerateToken(entity.AccessTokenType, user)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
 	}
 
-	refresh, err := uc.authRepo.GenerateRefreshToken()
+	refresh, err := uc.authRepo.GenerateToken(entity.RefreshTokenType, user)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
 	}
 
 	// Save refresh token
-	err = uc.authRepo.SaveRefreshToken(refresh)
+	err = uc.authRepo.SaveToken(refresh)
 
 	if err != nil {
 		return nil, err

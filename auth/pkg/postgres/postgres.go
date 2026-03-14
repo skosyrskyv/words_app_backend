@@ -2,7 +2,8 @@ package postgres
 
 import (
 	"auth/config"
-	"auth/internal/infrastructure/user/model"
+	auth "auth/internal/infrastructure/auth/model"
+	user "auth/internal/infrastructure/user/model"
 	"log"
 	"log/slog"
 
@@ -23,7 +24,7 @@ func Init(cfg config.PostgresConfig) *Postgres {
 
 	slog.Info("Postgres connected")
 
-	if err := postgres.AutoMigrate(&model.UserModel{}); err != nil {
+	if err := postgres.AutoMigrate(&user.UserModel{}, &auth.JWToken{}); err != nil {
 		log.Fatal("Failed to run migrations:", err)
 	}
 

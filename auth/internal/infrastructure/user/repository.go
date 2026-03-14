@@ -8,11 +8,11 @@ import (
 )
 
 type repository struct {
-	db *gorm.DB
+	postgres *gorm.DB
 }
 
-func NewRepository(db *gorm.DB) *repository {
-	return &repository{db: db}
+func NewRepository(postgres *gorm.DB) *repository {
+	return &repository{postgres: postgres}
 }
 
 func (r *repository) CreateUser(user *entity.User) (*entity.User, error) {
@@ -22,7 +22,7 @@ func (r *repository) CreateUser(user *entity.User) (*entity.User, error) {
 		Password: user.PasswordHash.String(),
 	}
 
-	if err := r.db.Create(model).Error; err != nil {
+	if err := r.postgres.Create(model).Error; err != nil {
 		return nil, err
 	}
 
@@ -32,7 +32,7 @@ func (r *repository) CreateUser(user *entity.User) (*entity.User, error) {
 func (r *repository) GetUserByUUID(uuid string) (*entity.User, error) {
 	var model model.UserModel
 
-	if err := r.db.Where("uuid = ?", uuid).First(&model).Error; err != nil {
+	if err := r.postgres.Where("uuid = ?", uuid).First(&model).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, entity.ErrUserNotFound
 		}
@@ -45,7 +45,7 @@ func (r *repository) GetUserByUUID(uuid string) (*entity.User, error) {
 func (r *repository) GetUserByEmail(email string) (*entity.User, error) {
 	var model model.UserModel
 
-	if err := r.db.Where("email = ?", email).First(&model).Error; err != nil {
+	if err := r.postgres.Where("email = ?", email).First(&model).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, entity.ErrUserCredentials
 		}
@@ -60,9 +60,9 @@ func (r *repository) UpdateUserPassword(user *entity.User) error {
 		Password: user.PasswordHash.String(),
 	}
 
-	return r.db.Model(&model.UserModel{}).Where("uuid = ?", user.UUID.String()).Update("password", m.Password).Error
+	return r.postgres.Model(&model.UserModel{}).Where("uuid = ?", user.UUID.String()).Update("password", m.Password).Error
 }
 
 func (r *repository) DeleteUser(uuid string) error {
-	return r.db.Delete(&model.UserModel{}, "uuid = ?", uuid).Error
+	return r.postgres.Delete(&model.UserModel{}, "uuid = ?", uuid).Error
 }

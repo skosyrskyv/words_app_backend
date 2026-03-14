@@ -11,13 +11,17 @@ import (
 )
 
 type UserModel struct {
-	Uuid      string         `gorm:"primarykey" json:"uuid"`
-	Email     string         `gorm:"uniqueIndex" json:"email" binding:"required,email"`
-	Password  string         `json:"-"`
-	IsActive  bool           `gorm:"default:true" json:"is_active"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	Uuid      string         `gorm:"primaryKey;type:uuid;column:uuid"`
+	Email     string         `gorm:"uniqueIndex;type:varchar(255);not null;column:email"`
+	Password  string         `gorm:"type:varchar(255);not null;column:password"`
+	IsActive  bool           `gorm:"default:true;not null;column:is_active"`
+	CreatedAt time.Time      `gorm:"autoCreateTime;column:created_at"`
+	UpdatedAt time.Time      `gorm:"autoUpdateTime;column:updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index;column:deleted_at"`
+}
+
+func (UserModel) TableName() string {
+	return "users"
 }
 
 func (model *UserModel) ToEntity() (*entity.User, error) {
