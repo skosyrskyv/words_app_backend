@@ -12,18 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//   SEC-003 — Medium
-
-//   Локация: auth/internal/presentation/http/handlers/auth_handler.go:50
-//   Категория: Безопасность
-
-//   Описание: При внутренней ошибке логина клиенту возвращается err.Error() — может утечь информация о стеке, БД, файловых
-//    путях.
-
-//   Рекомендация: Возвращать generic-сообщение, ошибку логировать на сервере.
-
-//   ---
-
 type handler struct {
 	useCases *usecase.AuthUseCases
 	logger   *slog.Logger
@@ -65,6 +53,51 @@ func (h *handler) Login(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, httpdto.ErrorResponse{
 			Error:   "INTERNAL_SERVER_ERROR",
 			Message: err.Error(),
+		})
+		return
+	}
+
+	response := httpdto.AuthSuccessResponse{
+		Access:  output.Access,
+		Refresh: output.Refresh,
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
+func (h *handler) RefreshToken(c *gin.Context) {
+	req := httpdto.RefreshTokenRequest{}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, httpdto.ErrorResponse{
+			Error:   "INVALID_REQUEST",
+			Message: err.Error(),
+		})
+		return
+	}
+
+	input := dto.RefreshTokenInput{
+		Refresh: req.Refresh,
+	}
+
+	output, err := h.useCases.Refresh.Execute(input)
+	if err != nil {
+		if err == entity.ErrInvalidToken {
+			c.JSON(http.StatusUnauthorized, httpdto.ErrorResponse{
+				Error:   "INVALID_TOKEN",
+				Message: "The provided token is invalid.",
+			})
+			return
+		}
+		if err == entity.ErrTokenNotFound {
+			c.JSON(http.StatusNotFound, httpdto.ErrorResponse{
+				Error:   "TOKEN_NOT_FOUND",
+				Message: "The provided token was not found.",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, httpdto.ErrorResponse{
+			Error:   "INTERNAL_SERVER_ERROR",
+			Message: "An internal server error occurred.",
 		})
 		return
 	}

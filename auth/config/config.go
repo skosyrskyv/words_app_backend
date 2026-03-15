@@ -25,16 +25,16 @@ type Config struct {
 }
 
 type HTTPServerConfig struct {
-	Address string `yaml:"address"`
-	Port    string `yaml:"port"`
+	Address string `yaml:"address" env:"HTTP_HOST"`
+	Port    string `yaml:"port"    env:"HTTP_PORT"`
 }
 
 type PostgresConfig struct {
-	Host     string `yaml:"host" env-default:"localhost"`
-	Port     string `yaml:"port" env-default:"5432"`
-	Name     string `yaml:"name"`
-	User     string `yaml:"user"`
-	Password string `yaml:"password"`
+	Host     string `yaml:"host"     env:"POSTGRES_HOST"     env-default:"localhost"`
+	Port     string `yaml:"port"     env:"POSTGRES_PORT"     env-default:"5432"`
+	Name     string `yaml:"name"     env:"POSTGRES_DB"`
+	User     string `yaml:"user"     env:"POSTGRES_USER"`
+	Password string `yaml:"password" env:"POSTGRES_PASSWORD"`
 	Sslmode  string `yaml:"sslmode"`
 	Timezone string `yaml:"timezone"`
 }
@@ -50,10 +50,10 @@ type JWTConfig struct {
 }
 
 type RedisConfig struct {
-	Host         string `yaml:"host"`
-	Port         string `yaml:"port"`
-	Password     string `yaml:"password"`
-	DB           int    `yaml:"db"`
+	Host         string `yaml:"host"     env:"REDIS_HOST"`
+	Port         string `yaml:"port"     env:"REDIS_PORT"`
+	Password     string `yaml:"password" env:"REDIS_PASSWORD"`
+	DB           int    `yaml:"db"       env:"REDIS_DB"`
 	Username     string `yaml:"username"`
 	MaxRetries   int    `yaml:"max_retries"`
 	DialTimeout  int    `yaml:"dial_timeout"`
@@ -63,7 +63,7 @@ type RedisConfig struct {
 
 func Init() Config {
 	if err := godotenv.Load(); err != nil {
-		log.Fatalf("Error loading .env file: %s", err)
+		log.Printf("No .env file found, using environment variables: %s", err)
 	}
 
 	configPath := os.Getenv("CONFIG_PATH")

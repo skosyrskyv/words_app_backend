@@ -5,7 +5,6 @@ import (
 	"auth/internal/domain/interfaces"
 	"auth/internal/usecase/auth/dto"
 
-	"fmt"
 	"log/slog"
 )
 
@@ -37,22 +36,22 @@ func (uc *LoginUseCase) Execute(input dto.AuthInput) (*dto.AuthOutput, error) {
 	}
 
 	// Generate tokens
-	access, err := uc.authRepo.GenerateToken(entity.AccessTokenType, user)
+	access, err := uc.authRepo.GenerateToken(entity.AccessTokenType, user.UUID.String())
 	if err != nil {
-		fmt.Println(err)
+		uc.logger.Error("Failed to generate access token", "error", err)
 		return nil, err
 	}
 
-	refresh, err := uc.authRepo.GenerateToken(entity.RefreshTokenType, user)
+	refresh, err := uc.authRepo.GenerateToken(entity.RefreshTokenType, user.UUID.String())
 	if err != nil {
-		fmt.Println(err)
+		uc.logger.Error("Failed to generate refresh token", "error", err)
 		return nil, err
 	}
 
 	// Save refresh token
 	err = uc.authRepo.SaveToken(refresh)
-
 	if err != nil {
+		uc.logger.Error("Failed to save refresh token", "error", err)
 		return nil, err
 	}
 

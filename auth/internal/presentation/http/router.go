@@ -29,7 +29,7 @@ func NewRouter(useCases *usecase.UseCases, logger *slog.Logger) *gin.Engine {
 	authGroup := router.Group("/api/v1/auth")
 	{
 		authGroup.POST("/login", authHandler.Login)
-		// authGroup.POST("/refresh", authHandler.Refresh)
+		authGroup.POST("/token/refresh", authHandler.RefreshToken)
 	}
 
 	return router

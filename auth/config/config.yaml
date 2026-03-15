@@ -5,8 +5,8 @@ postgres:
   timezone: Asia/Shanghai
 
 jwt:
-  private_key_path: "private.pem"
-  public_key_path: "public.pem"
+  private_key_path: "/app/keys/private.pem"
+  public_key_path: "/app/keys/public.pem"
   issuer: "auth"
   access_ttl: "15m"
   refresh_ttl: "90d"

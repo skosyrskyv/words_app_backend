@@ -41,7 +41,15 @@ func (r *Redis) Get(ctx context.Context, key string) (string, error) {
 	return r.db.Get(ctx, key).Result()
 }
 
+func (r *Redis) Del(ctx context.Context, key string) error {
+	return r.db.Del(ctx, key).Err()
+}
+
 func (r *Redis) Close() {
 	r.db.Close()
 	slog.Info("Redis connection closed")
+}
+
+func (p *Redis) DB() *redis.Client {
+	return p.db
 }
