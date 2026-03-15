@@ -17,7 +17,6 @@
 vendor/
 
 # configs
-/configs/*
 *.env
 
 # keys
