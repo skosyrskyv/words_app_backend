@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type UserHandler struct {
@@ -28,7 +29,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, httpDto.ErrorResponse{
-			Error:   "INVALID_REQUEST",
+			Error:   http.StatusText(http.StatusBadRequest),
 			Message: err.Error(),
 		})
 		return
@@ -44,14 +45,14 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	if err != nil {
 		if err == entity.ErrEmailAlreadyExists {
 			c.JSON(http.StatusConflict, httpDto.ErrorResponse{
-				Error:   "EMAIL_ALREADY_EXISTS",
+				Error:   http.StatusText(http.StatusConflict),
 				Message: "User with this email already exists",
 			})
 			return
 		}
 
 		c.JSON(http.StatusInternalServerError, httpDto.ErrorResponse{
-			Error:   "INTERNAL_SERVER_ERROR",
+			Error:   http.StatusText(http.StatusInternalServerError),
 			Message: "Failed to create user",
 		})
 		return
@@ -68,30 +69,29 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 }
 
 func (h *UserHandler) GetUserByUUID(c *gin.Context) {
-	uuid := c.Param("uuid")
+	uuidParam := c.Param("uuid")
 
-	if uuid == "" {
-		h.logger.Warn("UUID not provided")
+	if _, err := uuid.Parse(uuidParam); err != nil {
 		c.JSON(http.StatusBadRequest, httpDto.ErrorResponse{
-			Error:   "INVALID_REQUEST",
-			Message: "UUID is required",
+			Error:   http.StatusText(http.StatusBadRequest),
+			Message: "Invalid UUID format",
 		})
 		return
 	}
 
-	userOutput, err := h.useCases.GetUserByUUID.Execute(uuid)
+	userOutput, err := h.useCases.GetUserByUUID.Execute(uuidParam)
 
 	if err != nil {
 		if err == entity.ErrUserNotFound {
 			c.JSON(http.StatusNotFound, httpDto.ErrorResponse{
-				Error:   "USER_NOT_FOUND",
+				Error:   http.StatusText(http.StatusNotFound),
 				Message: "User with this UUID not found",
 			})
 			return
 		}
 
 		c.JSON(http.StatusInternalServerError, httpDto.ErrorResponse{
-			Error:   "INTERNAL_SERVER_ERROR",
+			Error:   http.StatusText(http.StatusInternalServerError),
 			Message: "Failed to get user",
 		})
 		return

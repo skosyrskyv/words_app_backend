@@ -27,7 +27,7 @@ func (uc *GetUserByUUIDUseCase) Execute(uuid string) (*dto.UserOutput, error) {
 			uc.logger.Warn("User not found", slog.String("uuid", uuid))
 			return nil, err
 		}
-		uc.logger.Error("Failed to get user")
+		uc.logger.Error("Failed to get user", "error", err.Error(), "uuid", uuid)
 		return nil, err
 	}
 

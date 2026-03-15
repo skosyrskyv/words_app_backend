@@ -26,10 +26,10 @@ func main() {
 }
 
 func AppRun(ctx context.Context, cfg config.Config, logger *slog.Logger) {
-	// Redis
+	// Initialize Redis
 	redis := redis.Init(ctx, cfg.RedisConfig)
 
-	// Initialize postgres
+	// Initialize Postgres
 	postgres := postgres.Init(cfg.PostgresConfig)
 
 	// Initialize repositories

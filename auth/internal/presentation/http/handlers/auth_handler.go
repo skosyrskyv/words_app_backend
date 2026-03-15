@@ -29,7 +29,7 @@ func (h *handler) Login(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, httpdto.ErrorResponse{
-			Error:   "INVALID_REQUEST",
+			Error:   http.StatusText(http.StatusBadRequest),
 			Message: err.Error(),
 		})
 		return
@@ -45,13 +45,13 @@ func (h *handler) Login(c *gin.Context) {
 	if err != nil {
 		if err == entity.ErrUserCredentials {
 			c.JSON(http.StatusNotFound, httpdto.ErrorResponse{
-				Error:   "NO_USER_CREDENTIALS",
+				Error:   http.StatusText(http.StatusNotFound),
 				Message: err.Error(),
 			})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, httpdto.ErrorResponse{
-			Error:   "INTERNAL_SERVER_ERROR",
+			Error:   http.StatusText(http.StatusInternalServerError),
 			Message: err.Error(),
 		})
 		return
@@ -69,7 +69,7 @@ func (h *handler) RefreshToken(c *gin.Context) {
 	req := httpdto.RefreshTokenRequest{}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, httpdto.ErrorResponse{
-			Error:   "INVALID_REQUEST",
+			Error:   http.StatusText(http.StatusBadRequest),
 			Message: err.Error(),
 		})
 		return
@@ -83,20 +83,20 @@ func (h *handler) RefreshToken(c *gin.Context) {
 	if err != nil {
 		if err == entity.ErrInvalidToken {
 			c.JSON(http.StatusUnauthorized, httpdto.ErrorResponse{
-				Error:   "INVALID_TOKEN",
+				Error:   http.StatusText(http.StatusUnauthorized),
 				Message: "The provided token is invalid.",
 			})
 			return
 		}
 		if err == entity.ErrTokenNotFound {
 			c.JSON(http.StatusNotFound, httpdto.ErrorResponse{
-				Error:   "TOKEN_NOT_FOUND",
+				Error:   http.StatusText(http.StatusNotFound),
 				Message: "The provided token was not found.",
 			})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, httpdto.ErrorResponse{
-			Error:   "INTERNAL_SERVER_ERROR",
+			Error:   http.StatusText(http.StatusInternalServerError),
 			Message: "An internal server error occurred.",
 		})
 		return
