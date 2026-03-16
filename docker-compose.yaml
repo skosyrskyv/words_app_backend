@@ -1,9 +1,32 @@
 services:
+  # Gateway — единственная точка входа
+  gateway:
+    build: ./gateway
+    ports:
+      - "80:${GATEWAY_PORT}"
+      - "8080:${GATEWAY_PORT}"
+      - "443:${GATEWAY_PORT}"
+
+    environment:
+      - ENV=${ENV}
+      - HTTP_HOST=${GATEWAY_HTTP_HOST}
+      - HTTP_PORT=${GATEWAY_PORT}
+      - AUTH_SERVICE_URL=http://auth_service_server:${AUTH_HTTP_PORT}
+      - JWT_PUBLIC_KEY_PATH=${JWT_PUBLIC_KEY_PATH}
+      - JWT_ISSUER=${JWT_ISSUER}
+    volumes:
+      - ./auth/public.pem:/app/keys/public.pem:ro
+      - ./gateway/static:/app/static:ro
+    depends_on:
+      auth_service_server:
+        condition: service_healthy
+    networks:
+      - public
+      - internal
+
   # Authentication Service
   auth_service_server:
     build: ./auth
-    ports:
-      - "8080:${AUTH_HTTP_PORT}"
     environment:
       - CONFIG_PATH=${AUTH_CONFIG_PATH}
       - HTTP_HOST=${AUTH_HTTP_HOST}
@@ -17,6 +40,7 @@ services:
       - REDIS_PORT=${AUTH_REDIS_PORT}
       - REDIS_DB=${AUTH_REDIS_DB}
       - REDIS_PASSWORD=${AUTH_REDIS_PASSWORD}
+      - JWT_ISSUER=${JWT_ISSUER}
     volumes:
       - ./auth/config:/app/config:ro
       - ./auth/private.pem:/app/keys/private.pem:ro
@@ -26,6 +50,14 @@ services:
         condition: service_healthy
       auth_service_redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:${AUTH_HTTP_PORT}/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    networks:
+      - internal
 
   # Auth service postgres
   auth_service_postgres:
@@ -36,27 +68,32 @@ services:
       - POSTGRES_DB=${AUTH_POSTGRES_DB}
       - POSTGRES_USER=${AUTH_POSTGRES_USER}
       - POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
-    ports:
-      - "${AUTH_POSTGRES_PORT}:5432"
     volumes:
       - auth_postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${AUTH_POSTGRES_USER} -d ${AUTH_POSTGRES_DB}"]
       interval: 5s
       retries: 5
+    networks:
+      - internal
 
   # Auth service redis
   auth_service_redis:
     image: redis:8-alpine
     command: ["redis-server", "--requirepass", "${AUTH_REDIS_PASSWORD}"]
-    ports:
-      - "${AUTH_REDIS_PORT}:6379"
     volumes:
       - auth_redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "${AUTH_REDIS_PASSWORD}", "ping"]
       interval: 5s
       retries: 5
+    networks:
+      - internal
+
+networks:
+  public:
+  internal:
+    internal: true
 
 volumes:
   auth_postgres_data: {}

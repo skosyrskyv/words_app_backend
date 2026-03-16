@@ -40,11 +40,9 @@ type PostgresConfig struct {
 }
 
 type JWTConfig struct {
-	SecretKey      string `yaml:"secret_key"`
 	PrivateKeyPath string `yaml:"private_key_path"`
 	PublicKeyPath  string `yaml:"public_key_path"`
-	SigningMethod  string `yaml:"signing_method"`
-	Issuer         string `yaml:"issuer"`
+	Issuer         string `env:"JWT_ISSUER"`
 	AccessTTL      string `yaml:"access_ttl"`
 	RefreshTTL     string `yaml:"refresh_ttl"`
 }

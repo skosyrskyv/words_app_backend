@@ -49,10 +49,13 @@ func AppRun(ctx context.Context, cfg config.Config, logger *slog.Logger) {
 
 	// Graceful Shutdown
 	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT, os.Interrupt)
+
 	<-quit
 
 	httpServer.Shutdown()
 	postgres.Close()
 	redis.Close()
+
+	os.Exit(0)
 }

@@ -1,0 +1,49 @@
+package config
+
+import (
+	"log"
+
+	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/joho/godotenv"
+)
+
+const (
+	LOCAL = "local"
+	PROD  = "prod"
+	DEV   = "dev"
+)
+
+type Config struct {
+	Env              string `env:"ENV" env-default:"local"`
+	HTTPServerConfig `yaml:",inline"`
+	ServicesConfig   `yaml:",inline"`
+	JWTConfig        `yaml:",inline"`
+}
+
+type JWTConfig struct {
+	PublicKeyPath string `env:"JWT_PUBLIC_KEY_PATH" env-required:"true"`
+	Issuer        string `env:"JWT_ISSUER"`
+}
+
+type ServicesConfig struct {
+	AuthServiceURL string `env:"AUTH_SERVICE_URL" env-required:"true"`
+}
+
+type HTTPServerConfig struct {
+	Address string `env:"HTTP_HOST" env-default:"0.0.0.0"`
+	Port    string `env:"HTTP_PORT" env-default:"8000"`
+}
+
+func Init() Config {
+	if err := godotenv.Load(); err != nil {
+		log.Printf("No .env file found, using environment variables: %s", err)
+	}
+
+	var cfg Config
+
+	if err := cleanenv.ReadEnv(&cfg); err != nil {
+		log.Fatalf("Error while reading environment variables: %s", err)
+	}
+
+	return cfg
+}

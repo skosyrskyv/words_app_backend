@@ -7,7 +7,6 @@ postgres:
 jwt:
   private_key_path: "/app/keys/private.pem"
   public_key_path: "/app/keys/public.pem"
-  issuer: "auth"
   access_ttl: "15m"
   refresh_ttl: "90d"
 

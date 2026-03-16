@@ -68,6 +68,45 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	c.JSON(http.StatusCreated, response)
 }
 
+func (h *UserHandler) GetUserMe(c *gin.Context) {
+	uuidParam := c.GetHeader("X-User-UUID")
+
+	if _, err := uuid.Parse(uuidParam); err != nil {
+		c.JSON(http.StatusBadRequest, httpDto.ErrorResponse{
+			Error:   http.StatusText(http.StatusBadRequest),
+			Message: "Invalid UUID format",
+		})
+		return
+	}
+
+	userOutput, err := h.useCases.GetUserByUUID.Execute(uuidParam)
+
+	if err != nil {
+		if err == entity.ErrUserNotFound {
+			c.JSON(http.StatusNotFound, httpDto.ErrorResponse{
+				Error:   http.StatusText(http.StatusNotFound),
+				Message: "User with this UUID not found",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, httpDto.ErrorResponse{
+			Error:   http.StatusText(http.StatusInternalServerError),
+			Message: "Failed to get user",
+		})
+		return
+	}
+
+	response := httpDto.UserResponse{
+		UUID:      userOutput.UUID,
+		Email:     userOutput.Email,
+		CreatedAt: userOutput.CreatedAt,
+		UpdatedAt: userOutput.UpdatedAt,
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
 func (h *UserHandler) GetUserByUUID(c *gin.Context) {
 	uuidParam := c.Param("uuid")
 

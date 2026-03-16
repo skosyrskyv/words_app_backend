@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Gateway</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0f1117;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            color: #e2e8f0;
+        }
+
+        .card {
+            text-align: center;
+            padding: 3rem 4rem;
+            border: 1px solid #2d3348;
+            border-radius: 16px;
+            background: #161b2e;
+            box-shadow: 0 0 60px rgba(99, 102, 241, 0.08);
+            max-width: 480px;
+            width: 90%;
+        }
+
+        .badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #6366f1;
+            background: rgba(99, 102, 241, 0.12);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: 999px;
+            padding: 0.25rem 0.85rem;
+            margin-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.75rem;
+        }
+
+        h1 span {
+            background: linear-gradient(135deg, #6366f1, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .endpoints {
+            text-align: left;
+            background: #0f1117;
+            border: 1px solid #2d3348;
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            font-size: 0.82rem;
+            color: #64748b;
+        }
+
+        .endpoints .row {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.35rem 0;
+            border-bottom: 1px solid #1e2438;
+        }
+
+        .endpoints .row:last-child {
+            border-bottom: none;
+        }
+
+        .method {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            min-width: 48px;
+            text-align: center;
+        }
+
+        .get {
+            background: rgba(34, 197, 94, 0.12);
+            color: #22c55e;
+        }
+
+        .post {
+            background: rgba(99, 102, 241, 0.12);
+            color: #818cf8;
+        }
+
+        .any {
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+        }
+
+        .path {
+            color: #cbd5e1;
+            font-family: monospace;
+        }
+
+        .status {
+            margin-top: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 6px #22c55e;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="badge">API Gateway</div>
+        <h1>Words <span>App</span></h1>
+        <p>Single entry point for all services.<br />Use the API endpoints below.</p>
+
+        <div class="endpoints">
+            <div class="row">
+                <span class="method get">GET</span>
+                <span class="path">/health</span>
+            </div>
+            <div class="row">
+                <span class="method post">POST</span>
+                <span class="path">/api/v1/users/registration</span>
+            </div>
+            <div class="row">
+                <span class="method post">POST</span>
+                <span class="path">/api/v1/auth/login</span>
+            </div>
+            <div class="row">
+                <span class="method post">POST</span>
+                <span class="path">/api/v1/auth/token/refresh</span>
+            </div>
+            <div class="row">
+                <span class="method any">ANY</span>
+                <span class="path">/api/v1/users/* 🔒</span>
+            </div>
+        </div>
+
+        <div class="status">
+            <div class="dot"></div>
+            Gateway is running
+        </div>
+    </div>
+</body>
+
+</html>
