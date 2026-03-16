@@ -1,3 +1,12 @@
+// @title           Words App API
+// @version         1.0
+// @description     REST API for Words App — accessible through the API Gateway
+
+// @securityDefinitions.apikey BearerAuth
+// @in                         header
+// @name                       Authorization
+// @description                Format: Bearer <access_token>
+
 package main
 
 import (

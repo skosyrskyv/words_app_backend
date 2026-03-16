@@ -13,6 +13,9 @@ import (
 func NewRouter(cfg config.Config, logger *slog.Logger) *gin.Engine {
 	router := gin.Default()
 
+	// CORS configuration
+	router.Use(cfg.Cors)
+
 	authProxy := handlers.NewAuthProxy(cfg.ServicesConfig.AuthServiceURL, logger)
 	jwtMiddleware := middleware.NewJWTMiddleware(cfg.JWTConfig, logger)
 
@@ -27,16 +30,30 @@ func NewRouter(cfg config.Config, logger *slog.Logger) *gin.Engine {
 	apiGroup := router.Group("/api")
 
 	// Version
-	versionGroup := apiGroup.Group("/v1")
+	v1Group := apiGroup.Group("/v1")
+	{
+		v1Group.StaticFile("/swagger", "/app/static/swagger.html")
+		v1Group.GET("/swagger/*any", gin.WrapH(authProxy))
+	}
 
-	// Public auth routes (login, registration, token refresh — без токена)
-	versionGroup.Any("/auth/*path", gin.WrapH(authProxy))
+	// Public routes
+	public := v1Group.Group("/")
+	{
+		public.Any("/auth/*path", gin.WrapH(authProxy))
+	}
 
-	// Protected routes (требуют валидный access token)
-	protected := versionGroup.Group("/users")
+	// Optional auth routes
+	optional := v1Group.Group("/")
+	optional.Use(jwtMiddleware.OptionalAuth())
+	{
+		optional.Any("translations/*path", gin.WrapH(authProxy))
+	}
+
+	// Protected routes
+	protected := v1Group.Group("/")
 	protected.Use(jwtMiddleware.RequireAuth())
 	{
-		protected.Any("/*path", gin.WrapH(authProxy))
+		protected.Any("users/*path", gin.WrapH(authProxy))
 	}
 
 	return router

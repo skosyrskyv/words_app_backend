@@ -24,6 +24,18 @@ func NewUserHandler(useCases *usecase.UserUseCases, logger *slog.Logger) *UserHa
 	}
 }
 
+// CreateUser godoc
+// @Summary      Register
+// @Description  Create a new user account
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request body dto.CreateUserRequest true "Registration data"
+// @Success      201 {object} dto.UserResponse
+// @Failure      400 {object} dto.ErrorResponse
+// @Failure      409 {object} dto.ErrorResponse
+// @Failure      500 {object} dto.ErrorResponse
+// @Router       /api/v1/auth/registration [post]
 func (h *UserHandler) CreateUser(c *gin.Context) {
 	req := httpDto.CreateUserRequest{}
 
@@ -68,6 +80,17 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	c.JSON(http.StatusCreated, response)
 }
 
+// GetUserMe godoc
+// @Summary      Get current user
+// @Description  Returns the profile of the authenticated user
+// @Tags         users
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {object} dto.UserResponse
+// @Failure      400 {object} dto.ErrorResponse
+// @Failure      404 {object} dto.ErrorResponse
+// @Failure      500 {object} dto.ErrorResponse
+// @Router       /api/v1/users/me [get]
 func (h *UserHandler) GetUserMe(c *gin.Context) {
 	uuidParam := c.GetHeader("X-User-UUID")
 
@@ -107,6 +130,18 @@ func (h *UserHandler) GetUserMe(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+// GetUserByUUID godoc
+// @Summary      Get user by UUID
+// @Description  Returns a user profile by UUID
+// @Tags         users
+// @Produce      json
+// @Security     BearerAuth
+// @Param        uuid path string true "User UUID"
+// @Success      200 {object} dto.UserResponse
+// @Failure      400 {object} dto.ErrorResponse
+// @Failure      404 {object} dto.ErrorResponse
+// @Failure      500 {object} dto.ErrorResponse
+// @Router       /api/v1/users/{uuid} [get]
 func (h *UserHandler) GetUserByUUID(c *gin.Context) {
 	uuidParam := c.Param("uuid")
 

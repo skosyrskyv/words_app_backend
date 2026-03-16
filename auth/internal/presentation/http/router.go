@@ -1,11 +1,14 @@
 package router
 
 import (
+	_ "auth/docs"
 	"auth/internal/presentation/http/handlers"
 	"auth/internal/usecase"
 	"log/slog"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func NewRouter(useCases *usecase.UseCases, logger *slog.Logger) *gin.Engine {
@@ -39,6 +42,9 @@ func NewRouter(useCases *usecase.UseCases, logger *slog.Logger) *gin.Engine {
 		authGroup.POST("/registration", userHandler.CreateUser)
 		authGroup.POST("/token/refresh", authHandler.RefreshToken)
 	}
+
+	// Swagger
+	versionGroup.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return router
 }

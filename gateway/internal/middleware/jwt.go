@@ -84,6 +84,49 @@ func (m *JWTMiddleware) RequireAuth() gin.HandlerFunc {
 	}
 }
 
+func (m *JWTMiddleware) OptionalAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		tokenString, err := extractBearerToken(c.GetHeader("Authorization"))
+		if err != nil || tokenString == "" {
+			c.Next()
+			return
+		}
+
+		token, err := jwt.Parse(tokenString, func(t *jwt.Token) (any, error) {
+			if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok {
+				return nil, jwt.ErrSignatureInvalid
+			}
+			return m.publicKey, nil
+		}, jwt.WithIssuer(m.issuer), jwt.WithExpirationRequired())
+
+		if err != nil || !token.Valid {
+			m.logger.Debug("Optional JWT validation failed", slog.Any("error", err))
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
+			return
+		}
+
+		claims := token.Claims.(jwt.MapClaims)
+
+		userUUID, _ := claims["sub"].(string)
+		tokenID, _ := claims["jti"].(string)
+
+		if userUUID == "" || tokenID == "" {
+			m.logger.Debug("Optional JWT missing claims", slog.Any("claims", claims))
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid claims in token"})
+			return
+		}
+
+		c.Request.Header.Set("X-User-UUID", userUUID)
+		c.Request.Header.Set("X-Token-ID", tokenID)
+
+		c.Set(ContextUserUUID, userUUID)
+		c.Set(ContextTokenID, tokenID)
+
+		c.Next()
+	}
+
+}
+
 func extractBearerToken(header string) (string, error) {
 	if header == "" {
 		return "", jwt.ErrTokenUnverifiable

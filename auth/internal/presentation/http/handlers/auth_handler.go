@@ -24,6 +24,18 @@ func NewAuthHandler(useCases *usecase.AuthUseCases, logger *slog.Logger) *handle
 	}
 }
 
+// Login godoc
+// @Summary      Login
+// @Description  Authenticate user and receive access + refresh tokens
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request body dto.LoginRequest true "Login credentials"
+// @Success      200 {object} dto.AuthSuccessResponse
+// @Failure      400 {object} dto.ErrorResponse
+// @Failure      404 {object} dto.ErrorResponse
+// @Failure      500 {object} dto.ErrorResponse
+// @Router       /api/v1/auth/login [post]
 func (h *handler) Login(c *gin.Context) {
 	req := httpdto.LoginRequest{}
 
@@ -65,6 +77,19 @@ func (h *handler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+// RefreshToken godoc
+// @Summary      Refresh token
+// @Description  Get a new access token using a refresh token
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request body dto.RefreshTokenRequest true "Refresh token"
+// @Success      200 {object} dto.AuthSuccessResponse
+// @Failure      400 {object} dto.ErrorResponse
+// @Failure      401 {object} dto.ErrorResponse
+// @Failure      404 {object} dto.ErrorResponse
+// @Failure      500 {object} dto.ErrorResponse
+// @Router       /api/v1/auth/token/refresh [post]
 func (h *handler) RefreshToken(c *gin.Context) {
 	req := httpdto.RefreshTokenRequest{}
 	if err := c.ShouldBindJSON(&req); err != nil {
