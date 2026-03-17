@@ -26,25 +26,23 @@
 <body>
     <div id="swagger-ui"></div>
 
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
     <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
     <script>
         SwaggerUIBundle({
-            url: "http://127.0.0.1/api/v1/swagger/doc.json",
-            // urls: [
-            //     { url: "http://127.0.0.1/api/v1/swagger/swagger.json", name: "Auth Service" },
-            //     // При добавлении нового сервиса — добавь строку:
-            //     // { url: "/api/v1/words/swagger/doc.json", name: "Words Service" },
-            // ],
-
+            urls: [
+                { url: "http://127.0.0.1/api/v1/swagger/doc.json", name: "Auth Service" },
+            ],
             dom_id: "#swagger-ui",
             presets: [
                 SwaggerUIBundle.presets.apis,
+                SwaggerUIStandalonePreset
             ],
             plugins: [
+                SwaggerUIBundle.plugins.Topbar,
                 SwaggerUIBundle.plugins.DownloadUrl
             ],
-            layout: "BaseLayout",
-            persistAuthorization: true,
+            layout: "StandaloneLayout",
         });
     </script>
 </body>
