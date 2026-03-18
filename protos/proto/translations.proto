@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package translations;
+
+option go_package = "/protos/gen/translations";
+
+// Translations service provides text translation functionality.
+service Translations {
+    // Translate translates text from source language to target language.
+    rpc Translate(TranslateRequest) returns (TranslateResponse);
+}
+
+
+message TranslateRequest {
+    string text = 1;
+    string source_lang = 2;
+    string target_lang = 3;
+}
+
+message TranslateResponse {
+    repeated Definition definitions = 1;
+}
+
+message Definition {
+    string text = 1;
+    string pos  = 2;
+    repeated Translation tr = 3;
+}
+
+message Translation {
+    string text = 1;
+    string pos  = 2;
+    repeated Synonym synonyms = 3;
+    repeated Meaning meanings = 4;
+}
+
+message Synonym {
+    string text = 1;
+}
+
+message Meaning {
+    string text = 1;
+}

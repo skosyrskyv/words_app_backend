@@ -20,18 +20,20 @@ const (
 
 type CollectionItem struct {
 	UUID         uuid.UUID
+	User         uuid.UUID
+	Collection   uuid.UUID
+	Tag          CollectionTag
 	Source       string
 	Translations []string
-	User         uuid.UUID
-	Tag          CollectionTag
 }
 
-func NewCollectionItem(source string, translations []string, user uuid.UUID, tag CollectionTag) *CollectionItem {
+func NewCollectionItem(source string, translations []string, user uuid.UUID, collectionUUID uuid.UUID, tag CollectionTag) *CollectionItem {
 	return &CollectionItem{
 		UUID:         uuid.New(),
+		User:         user,
+		Collection:   collectionUUID,
+		Tag:          tag,
 		Source:       source,
 		Translations: translations,
-		User:         user,
-		Tag:          tag,
 	}
 }

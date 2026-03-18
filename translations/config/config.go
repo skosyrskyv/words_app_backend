@@ -19,6 +19,7 @@ const (
 type Config struct {
 	Env              string `yaml:"env" env-default:"local" env-required:"true"`
 	HTTPServerConfig `yaml:"http_server"`
+	GRPCServerConfig `yaml:"grpc_server"`
 	PostgresConfig   `yaml:"postgres"`
 	JWTConfig        `yaml:"jwt"`
 	RedisConfig      `yaml:"redis"`
@@ -27,6 +28,11 @@ type Config struct {
 type HTTPServerConfig struct {
 	Address string `yaml:"address" env:"HTTP_HOST"`
 	Port    string `yaml:"port"    env:"HTTP_PORT"`
+}
+
+type GRPCServerConfig struct {
+	Address string `yaml:"address" env:"GRPC_HOST"`
+	Port    string `yaml:"port"    env:"GRPC_PORT"`
 }
 
 type PostgresConfig struct {

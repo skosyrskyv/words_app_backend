@@ -1,0 +1,115 @@
+syntax = "proto3";
+
+package collections;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "/protos/gen/collections";
+
+// Collections service provides functionality to manage user words collection.
+service Collections {
+ // CreateCollection creates a new collection with the given name.
+ rpc CreateCollection(CreateCollectionRequest) returns (CreateCollectionResponse);
+ // GetCollection retrieves a collection by its UUID.
+ rpc GetCollection(GetCollectionRequest) returns (GetCollectionResponse);
+ // GetUserCollections retrieves all collections belonging to a user.
+ rpc GetUserCollections(GetUserCollectionsRequest) returns (GetUserCollectionsResponse);
+ // RemoveCollection deletes a collection by its UUID.
+ rpc RemoveCollection(RemoveCollectionRequest) returns (RemoveCollectionResponse);
+ // UpdateCollection updates the name of an existing collection.
+ rpc UpdateCollection(UpdateCollectionRequest) returns (UpdateCollectionResponse);
+
+ // GetCollectionItems retrieves items from a specific collection for a user.
+ rpc GetCollectionItems(GetUserCollectionItemsRequest) returns (GetUserCollectionItemsResponse);
+ // GetAllUserCollectionItems retrieves all collection items for a user across all collections.
+ rpc GetAllUserCollectionItems(GetAllUserCollectionItemsRequest) returns (GetAllUserCollectionItemsResponse);
+}
+
+
+message CreateCollectionRequest {
+  string name = 1;
+}
+
+message CreateCollectionResponse {
+  string uuid = 1;
+  string name = 2;
+}
+
+message GetCollectionRequest {
+  string uuid = 1;
+}
+
+message GetCollectionResponse {
+    string uuid = 1;
+     string name = 2;
+}
+
+message GetUserCollectionsRequest {
+    string user_uuid = 1;
+}
+
+message GetUserCollectionsResponse {
+  repeated Collection collections = 1;
+}
+
+message RemoveCollectionRequest {
+  string uuid = 1;
+}
+
+message RemoveCollectionResponse {
+  bool success = 1;
+}
+
+message UpdateCollectionRequest {
+  string uuid = 1;
+  string name = 2;
+}
+
+message UpdateCollectionResponse {
+  string uuid = 1;
+  string name = 2;
+}
+
+message GetUserCollectionItemsRequest {
+  string user_uuid = 1;
+  string collection_uuid = 2;
+}
+
+message GetUserCollectionItemsResponse {
+  repeated CollectionItem items = 1;
+}
+
+message GetAllUserCollectionItemsRequest {
+  string user_uuid = 1;
+}
+
+message GetAllUserCollectionItemsResponse {
+  repeated CollectionItem items = 1;
+}
+
+message Collection {
+  string uuid = 1;
+  string name = 2;
+}
+
+enum CollectionTag {
+  COLLECTION_TAG_NON = 0;
+  COLLECTION_TAG_RED = 1;
+  COLLECTION_TAG_PINK = 2;
+  COLLECTION_TAG_PURPLE = 3;
+  COLLECTION_TAG_BLUE = 4;
+  COLLECTION_TAG_GREEN = 5;
+  COLLECTION_TAG_YELLOW = 6;
+  COLLECTION_TAG_ORANGE = 7;
+  COLLECTION_TAG_GREY = 8;
+}
+
+message CollectionItem {
+  string uuid = 1;
+  string source = 2;
+  repeated string translations = 3;
+  optional string user = 4;
+  CollectionTag tag = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
