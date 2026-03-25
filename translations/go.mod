@@ -9,6 +9,7 @@ require (
 	google.golang.org/grpc v1.79.3
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.31.1
+	words-app.local/protos v0.0.0
 )
 
 replace words-app.local/protos => ../protos

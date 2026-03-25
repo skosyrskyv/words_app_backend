@@ -18,16 +18,15 @@ const (
 
 type Config struct {
 	Env              string `yaml:"env" env-default:"local" env-required:"true"`
-	HTTPServerConfig `yaml:"http_server"`
+	HTTPClientConfig `yaml:"http_client"`
 	GRPCServerConfig `yaml:"grpc_server"`
 	PostgresConfig   `yaml:"postgres"`
 	JWTConfig        `yaml:"jwt"`
 	RedisConfig      `yaml:"redis"`
 }
 
-type HTTPServerConfig struct {
-	Address string `yaml:"address" env:"HTTP_HOST"`
-	Port    string `yaml:"port"    env:"HTTP_PORT"`
+type HTTPClientConfig struct {
+	ReadTimeout int `yaml:"read_timeout" env:"HTTP_CLIENT_READ_TIMEOUT" env-default:"5"`
 }
 
 type GRPCServerConfig struct {

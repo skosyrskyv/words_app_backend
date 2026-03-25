@@ -9,11 +9,11 @@ import (
 	"google.golang.org/grpc"
 )
 
-type Server struct {
+type grpcserver struct {
 	s *grpc.Server
 }
 
-func Init(cfg config.GRPCServerConfig) (*Server, error) {
+func Init(cfg config.GRPCServerConfig) (*grpcserver, error) {
 	var server *grpc.Server
 
 	server = grpc.NewServer(grpc.ConnectionTimeout(time.Second * 5))
@@ -23,9 +23,13 @@ func Init(cfg config.GRPCServerConfig) (*Server, error) {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	server.Serve(listener)
+	go server.Serve(listener)
 
-	return &Server{
+	return &grpcserver{
 		s: server,
 	}, nil
+}
+
+func (gs *grpcserver) Shutdown() {
+	gs.s.GracefulStop()
 }
