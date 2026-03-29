@@ -1,7 +1,10 @@
 services:
   # Gateway — единственная точка входа
   gateway:
-    build: ./gateway
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+
     ports:
       - "80:${GATEWAY_PORT}"
       - "8080:${GATEWAY_PORT}"
@@ -12,14 +15,16 @@ services:
       - HTTP_HOST=${GATEWAY_HTTP_HOST}
       - HTTP_PORT=${GATEWAY_PORT}
       - AUTH_SERVICE_URL=http://auth_service_server:${AUTH_HTTP_PORT}
+      - TRANSLATIONS_SERVICE_ADDR=translations_service_server:${TRANSLATIONS_GRPC_PORT}
       - JWT_PUBLIC_KEY_PATH=${JWT_PUBLIC_KEY_PATH}
       - JWT_ISSUER=${JWT_ISSUER}
     volumes:
       - ./auth/public.pem:/app/keys/public.pem:ro
-      - ./gateway/static:/app/static:ro
     depends_on:
       auth_service_server:
         condition: service_healthy
+      translations_service_server:
+        condition: service_started
     networks:
       - public
       - internal
@@ -89,6 +94,51 @@ services:
       retries: 5
     networks:
       - internal
+  
+  # Translations Service
+  translations_service_server:
+    build:
+      context: .
+      dockerfile: translations/Dockerfile
+    environment:
+      - CONFIG_PATH=${TRANSLATIONS_CONFIG_PATH}
+      - GRPC_PORT=${TRANSLATIONS_GRPC_PORT}
+      - POSTGRES_DB=${TRANSLATIONS_POSTGRES_DB}
+      - POSTGRES_USER=${TRANSLATIONS_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${TRANSLATIONS_POSTGRES_PASSWORD}
+      - POSTGRES_HOST=${TRANSLATIONS_POSTGRES_HOST}
+      - POSTGRES_PORT=${TRANSLATIONS_POSTGRES_PORT}
+    volumes:
+      - ./translations/config:/app/config:ro
+    depends_on:
+      translations_service_postgres:
+        condition: service_healthy
+    # healthcheck:
+    #   test: ["CMD-SHELL", "wget -qO- http://localhost:${TRANSLATIONS_HTTP_PORT}/health || exit 1"]
+    #   interval: 5s
+    #   timeout: 3s
+    #   retries: 10
+    #   start_period: 5s
+    networks:
+      - internal
+
+  # Translations service postgres
+  translations_service_postgres:
+    image: postgres:18-alpine
+    restart: always
+    shm_size: 128mb
+    environment:
+      - POSTGRES_DB=${TRANSLATIONS_POSTGRES_DB}
+      - POSTGRES_USER=${TRANSLATIONS_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${TRANSLATIONS_POSTGRES_PASSWORD}
+    volumes:
+      - translations_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${TRANSLATIONS_POSTGRES_USER} -d ${TRANSLATIONS_POSTGRES_DB}"]
+      interval: 5s
+      retries: 5
+    networks:
+      - internal
 
 networks:
   public:
@@ -98,3 +148,4 @@ networks:
 volumes:
   auth_postgres_data: {}
   auth_redis_data: {}
+  translations_postgres_data: {}

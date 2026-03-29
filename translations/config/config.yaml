@@ -1,0 +1,11 @@
+env: "local"
+
+http_client:
+  read_timeout: 5
+
+grpc_server:
+  address: "0.0.0.0"
+
+postgres:
+  sslmode: "disable"
+  timezone: "UTC"

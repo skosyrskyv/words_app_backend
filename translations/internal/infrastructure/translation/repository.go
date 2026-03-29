@@ -1,8 +1,9 @@
 package translation
 
 import (
-	"auth/pkg/postgres"
+	"translations/internal/domain/entity"
 	"translations/pkg/httpclient"
+	"translations/pkg/postgres"
 )
 
 type repository struct {
@@ -17,7 +18,7 @@ func NewRepository(httpClient *httpclient.Client, postgres *postgres.Postgres) *
 	}
 }
 
-func (r *repository) GetTranslation(text, sourceLang, targetLang string) ([]string, error) {
+func (r *repository) Translate(text, sourceLang, targetLang string) ([]entity.Definition, error) {
 
 	return nil, nil
 }

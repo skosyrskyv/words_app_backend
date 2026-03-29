@@ -17,6 +17,7 @@ func NewRouter(cfg config.Config, logger *slog.Logger) *gin.Engine {
 	router.Use(cfg.Cors)
 
 	authProxy := handlers.NewAuthProxy(cfg.ServicesConfig.AuthServiceURL, logger)
+	translations := handlers.NewTranslationsHandler(cfg.ServicesConfig.TranslationsServiceAddr, logger)
 	jwtMiddleware := middleware.NewJWTMiddleware(cfg.JWTConfig, logger)
 
 	// Health check
@@ -39,21 +40,21 @@ func NewRouter(cfg config.Config, logger *slog.Logger) *gin.Engine {
 	// Public routes
 	public := v1Group.Group("/")
 	{
-		public.Any("/auth/*path", gin.WrapH(authProxy))
+		public.Any("/auth/*any", gin.WrapH(authProxy))
 	}
 
 	// Optional auth routes
 	optional := v1Group.Group("/")
 	optional.Use(jwtMiddleware.OptionalAuth())
 	{
-		optional.Any("translations/*path", gin.WrapH(authProxy))
+		optional.POST("/translations/translate", translations.Translate)
 	}
 
 	// Protected routes
 	protected := v1Group.Group("/")
 	protected.Use(jwtMiddleware.RequireAuth())
 	{
-		protected.Any("users/*path", gin.WrapH(authProxy))
+		protected.Any("/users/*any", gin.WrapH(authProxy))
 	}
 
 	return router

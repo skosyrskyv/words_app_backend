@@ -73,7 +73,6 @@ func (m *JWTMiddleware) RequireAuth() gin.HandlerFunc {
 		userUUID, _ := claims["sub"].(string)
 		tokenID, _ := claims["jti"].(string)
 
-		// Передаём данные дальше через заголовки к микросервисам
 		c.Request.Header.Set("X-User-UUID", userUUID)
 		c.Request.Header.Set("X-Token-ID", tokenID)
 

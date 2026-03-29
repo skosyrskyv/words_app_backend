@@ -29,7 +29,8 @@ type JWTConfig struct {
 }
 
 type ServicesConfig struct {
-	AuthServiceURL string `env:"AUTH_SERVICE_URL" env-required:"true"`
+	AuthServiceURL          string `env:"AUTH_SERVICE_URL" env-required:"true"`
+	TranslationsServiceAddr string `env:"TRANSLATIONS_SERVICE_ADDR" env-required:"true"`
 }
 
 type HTTPServerConfig struct {

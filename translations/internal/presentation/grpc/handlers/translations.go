@@ -2,34 +2,39 @@ package grpchandlers
 
 import (
 	"context"
-	usecases "translations/internal/usecase/translations"
+
+	usecase "translations/internal/usecase/translations"
 
 	pb "words-app.local/protos/gen/translations"
 )
 
-type handler struct {
-	uc *usecases.TranslationsUseCase
+type TranslationsHandler struct {
+	pb.UnimplementedTranslationsServer
+	uc *usecase.TranslateUseCase
 }
 
-func NewTranslationsHandler() *handler {
-	return &handler{
-		uc: &usecases.TranslationsUseCase{},
+func New(uc *usecase.TranslateUseCase) *TranslationsHandler {
+	return &TranslationsHandler{
+		uc: uc,
 	}
 }
 
-func (h *handler) Translate(ctx context.Context, req *pb.TranslateRequest) (*pb.TranslateResponse, error) {
-	definitions, err := h.uc.Execute(req.Text, req.SourceLang, req.TargetLang)
-	if err != nil {
-		return nil, err
-	}
-
-
-		pbDefs = append(pbDefs, &pb.Definition{
-			Text: d.Text,
-			Pos:  d.Pos,
-			Tr:   pbTrs,
-		})
-	}
-
-	return &pb.TranslateResponse{Definitions: pbDefs}, nil
+func (h *TranslationsHandler) Translate(ctx context.Context, req *pb.TranslateRequest) (*pb.TranslateResponse, error) {
+	return &pb.TranslateResponse{
+			Definitions: []*pb.Definition{
+				{
+					Text: "Example translation",
+					Pos:  "noun",
+					Tr: []*pb.Translation{
+						{
+							Text:     "Пример перевода",
+							Pos:      "существительное",
+							Synonyms: []*pb.Synonym{{Text: "пример"}, {Text: "образец"}},
+							Meanings: []*pb.Meaning{{Text: "пример для иллюстрации"}},
+						},
+					},
+				},
+			},
+		},
+		nil
 }

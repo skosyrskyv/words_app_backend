@@ -5,18 +5,21 @@ import (
 	"net"
 	"time"
 	"translations/config"
+	grpcrouter "translations/internal/presentation/grpc"
 
 	"google.golang.org/grpc"
 )
 
 type grpcserver struct {
-	s *grpc.Server
+	Server *grpc.Server
 }
 
-func Init(cfg config.GRPCServerConfig) (*grpcserver, error) {
+func Init(cfg config.GRPCServerConfig, router *grpcrouter.GRPCRouter) *grpcserver {
 	var server *grpc.Server
 
 	server = grpc.NewServer(grpc.ConnectionTimeout(time.Second * 5))
+
+	router.Register(server)
 
 	listener, err := net.Listen("tcp", cfg.Address+":"+cfg.Port)
 	if err != nil {
@@ -26,10 +29,10 @@ func Init(cfg config.GRPCServerConfig) (*grpcserver, error) {
 	go server.Serve(listener)
 
 	return &grpcserver{
-		s: server,
-	}, nil
+		Server: server,
+	}
 }
 
 func (gs *grpcserver) Shutdown() {
-	gs.s.GracefulStop()
+	gs.Server.GracefulStop()
 }
