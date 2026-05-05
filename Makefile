@@ -1,3 +1,5 @@
+
+
 genprotos:
 	protoc \
 		--proto_path=protos/proto \
@@ -9,3 +11,5 @@ genprotos:
 		protos/proto/translations.proto
 	cd protos && go mod tidy
 	go work sync
+
+
